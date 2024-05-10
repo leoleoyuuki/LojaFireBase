@@ -5,7 +5,9 @@ import {
   Text,
   View,
   TextInput,
-  Button
+  Button,
+  FlatList,
+  ActivityIndicator
 } from "react-native";
 import LojaItem from "@/components/LojaItem";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,12 +18,14 @@ import {
   getFirestore,
   collection,
   addDoc,
+  getDocs,
+  updateDoc,
 } from "../services/firebaseConfig";
-import { useState } from "react";
-import { getDocs } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 export default function HomeScreen() {
   const [title, setTitle] = useState("");
+  const [produtosList, setProdutosList] = useState([]);
 
   const addItem = async () => {
     try {
@@ -37,12 +41,23 @@ export default function HomeScreen() {
   };
 
   const getItem = async () => {
-    const querySnapshot = await getDocs(collection(db, "users"));
+    let d = [];
+    const querySnapshot = await getDocs(collection(db, "produtos"));
     querySnapshot.forEach((doc) => {
-      console.log(`${doc.id} => ${doc.data()}`);
-      console.log(doc)
+      console.log(doc.id, doc.data());
+      const produtos = {
+        id: doc.id,
+        title: doc.data().title,
+        isChecked: doc.data().isChecked,
+      };
+      d.push(produtos);
     });
+    setProdutosList(d);
   };
+
+  useEffect(() => {
+    getItem();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,9 +66,20 @@ export default function HomeScreen() {
         <Text style={styles.numItem}>3</Text>
         <AntDesign name="delete" size={24} color={"#000"} />
       </View>
-      <LojaItem />
-      <LojaItem />
-      <LojaItem />
+
+      {produtosList.length > 0 ? (
+        <FlatList
+          data={produtosList}
+          renderItem={({ item }) => {
+            return (
+              <View>
+                <LojaItem title={item.title} isChecked={item.isChecked} id={item.id} />
+              </View>
+            );
+          }}
+        />
+      ) : <ActivityIndicator style={{marginTop: 150}} size="large" color="#2a78b0" /> }
+
       <TextInput
         placeholder="Digite o nome do produto"
         style={styles.input}
@@ -61,9 +87,7 @@ export default function HomeScreen() {
         onChangeText={(value) => setTitle(value)}
         onSubmitEditing={addItem}
       />
-      <Button title="get" onPress={getItem}/>
     </SafeAreaView>
-    
   );
 }
 
