@@ -20,6 +20,7 @@ import {
   addDoc,
   getDocs,
   updateDoc,
+  
 } from "../services/firebaseConfig";
 import { useEffect, useState } from "react";
 
@@ -35,6 +36,7 @@ export default function HomeScreen() {
       });
       console.log("Document written with ID: ", docRef.id);
       alert("Produto Cadastrado");
+      getItem()
     } catch (e) {
       console.error("Error adding document: ", e);
     }
@@ -73,7 +75,7 @@ export default function HomeScreen() {
           renderItem={({ item }) => {
             return (
               <View>
-                <LojaItem title={item.title} isChecked={item.isChecked} id={item.id} />
+                <LojaItem title={item.title} isChecked={item.isChecked} getItem={getItem}  id={item.id} />
               </View>
             );
           }}
